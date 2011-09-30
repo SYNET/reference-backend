@@ -1,0 +1,16 @@
+<table>
+<packages>
+<title>Пакеты</title>
+<headalign>left</headalign>
+<bodyalign>left</bodyalign>
+<headsize>30%</headsize>
+<bodysize>70%</bodysize>
+</packages>
+<price>
+<title>Стоимость за месяц (день)</title>
+<headalign>right</headalign>
+<bodyalign>right</bodyalign>
+<headsize>70%</headsize>
+<bodysize>30%</bodysize>
+</price>
+</table>

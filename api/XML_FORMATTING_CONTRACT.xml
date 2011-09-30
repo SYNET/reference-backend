@@ -1,0 +1,23 @@
+<table>
+<number>
+<title>Карта</title>
+<headalign>left</headalign>
+<bodyalign>left</bodyalign>
+<headsize>20%</headsize>
+<bodysize>20%</bodysize>
+</number>
+<packages>
+<title>Пакеты</title>
+<headalign>center</headalign>
+<bodyalign>center</bodyalign>
+<headsize>60%</headsize>
+<bodysize>60%</bodysize>
+</packages>
+<price>
+<title>Стоимость за месяц (день)</title>
+<headalign>right</headalign>
+<bodyalign>right</bodyalign>
+<headsize>20%</headsize>
+<bodysize>20%</bodysize>
+</price>
+</table>
