@@ -3,7 +3,6 @@
 # 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
 from channels.models import Channel, DvbMux
 from xml.etree import ElementTree as ET
 
@@ -99,7 +98,7 @@ class Command(BaseCommand):
 				self.stderr.write(" Channel XMLTV ID=%d already in database, skipping\n" % ch['xmltvID'])
 				continue
 			
-			chanDB = Channel(name		= ch['name'],
+			Channel(name		= ch['name'],
 						xmltvID		= ch['xmltvID'],
 						tune		= ch['tune'],
 						chanType	= ch['chanType'],
@@ -108,12 +107,4 @@ class Command(BaseCommand):
 						lcn			= lcnCount,
 						mode		= u'IPTV',
 						mux			= None
-						)
-			try:
-				chanDB.save()
-			except IntegrityError as e:
-				print self.stderr.write(u"*** Failed to save channel [%d]%s, reason %s\n" % (chanDB.xmltvID, chanDB.name, e.__unicode__()))
-				continue
-			
-			self.stdout.write(u"+++ [%d] %s\n" % (chanDB.xmltvID, chanDB.name))
-			
+						).save()
