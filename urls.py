@@ -28,9 +28,9 @@ urlpatterns = patterns('',
 	
 	# subscriber messaging protocol
 	# defined by 
-	(r'^synet/message/list$', 'api.messages.messageList'),
-	(r'^synet/message/(?P<msg_id>\d+)/view$', 'api.messages.messageView'),
-	(r'^synet/message/(?P<msg_id>\d+)/read$', 'api.messages.messageRead'),
+	(r'^synet/messages/messageList$', 'api.messages.messageList'),
+	(r'^synet/messages/messageText$', 'api.messages.messageView'),
+	(r'^synet/messages/messageRead$', 'api.messages.messageRead'),
 	
 	# administration interface
     url(r'^synet/admin/', include(admin.site.urls)),

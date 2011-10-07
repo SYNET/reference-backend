@@ -8,6 +8,7 @@ from django.template import Context, loader
 from time import asctime
 from datetime import date
 from xml.etree import ElementTree as ET
+from api import contract
 
 def isMessageRead(readDate):
 	if readDate :
@@ -18,16 +19,16 @@ def isMessageRead(readDate):
 def messageList(request):
 	resp = HttpResponse(mimetype="text/xml")
 	
-	stbList = STB.objects.filter(hashKey=request.GET.get("sha1"), 
-			macAddr  = request.GET.get("mac"))
+	stbList = STB.objects.filter(hashKey=request.GET.get("sha1"))
 	if len(stbList) != 1:
-		return HttpResponse("authentication failed", status=404)
+		# no pairing, request it
+		return contract.billingErrorResponse("Pairing required", contract.ERROR_NEED_PAIRING)
 	
 	doc = ET.Element("messages"); 
 	msgList = Message.objects.filter(subscriber=stbList[0].subscriber)
 	for m in msgList:
 		mX = ET.Element("message")
-		mX.attrib['id']	= "%d" % m.id
+		mX.attrib['id']		= "%d" % m.id
 		mX.attrib['date']	= asctime(m.sendDate.timetuple())
 		mX.attrib['read']	= "%s" % isMessageRead(m.readDate)
 		subjX = ET.Element("subject")
@@ -37,51 +38,31 @@ def messageList(request):
 	
 	return HttpResponse(ET.tostring(doc, encoding='utf-8'))
 
-def getMessage(request, msg_id):
-	msg = None
+def messageRead(request):
 	try:
-		msg = Message.objects.get(id=msg_id)
-	except Exception as a: 
-		raise NameError('<error>no such message %s </error>\n' % msg_id)
-	
-	hashCode = request.GET.get('sha1')
-	mac		 = request.GET.get('mac')
-	
-	if (None == hashCode) | (hashCode == '') | (None == mac) | (None == ''):
-		return NameError("messageRead : missing parameters\n")
-	
-	# validate its coming from correct STB
-	validated = False
-	for s in msg.subscriber.stb_set.all():
-		if (s.hashKey == hashCode) and (s.macAddr == mac):
-			return msg;
-	raise NameError("<error>validation failed</error>")
-	
-
-def messageRead(request, msg_id):
-	try:
-		msg = getMessage(request, int(msg_id))
-	except NameError as e:
-		return HttpResponse(content=e, status=404)
+		msg = Message.objects.get(id=int(request.GET.get('msgID')),
+					  subscriber__accesscard__code=request.GET.get('cardNumber'),
+					  subscriber__stb__hashKey=request.GET.get('sha1'))
+	except Exception as e:
+		return contract.billingErrorResponse(e.__unicode__(), contract.ERROR_NOT_FOUND)
 	
 	msg.readDate = date.today();
 	msg.save()
 	
 	return HttpResponse("<ok/>")
 
-def messageView(request, msg_id):
-	msg = None
+def messageView(request):
 	try:
-		msg = getMessage(request, msg_id)
-	except NameError as e:
-		return HttpResponse(content=e, status=404)
+		msg = Message.objects.get(id=int(request.GET.get('msgID')),
+					  subscriber__accesscard__code=request.GET.get('cardNumber'),
+					  subscriber__stb__hashKey=request.GET.get('sha1'))
+	except Exception as e:
+		return contract.billingErrorResponse(e.__unicode__(), contract.ERROR_NOT_FOUND)
 	
 	msgML = ET.Element("message")
 	msgML.attrib['id'] = "%d" % msg.id
 	msgML.attrib['date'] = asctime(msg.sendDate.timetuple())
-	subjML = ET.Element("subject")
-	subjML.text = msg.subject
-	msgML.text = msg.text
-	msgML.append(subjML)
+	ET.SubElement(msgML, "subject").text = msg.subject
+	ET.SubElement(msgML, "text").text=msg.text
 	
 	return HttpResponse(ET.tostring(msgML, encoding='utf-8'))

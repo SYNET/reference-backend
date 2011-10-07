@@ -265,13 +265,16 @@ def ConnectSTB(request):
 		 								accesscard__pin=pin,
 										accesscard__enabled=True)
 	if subs.count() != 1:
-		return billingErrorResponse(msg="Wrong PIN")
+		return billingErrorResponse(msg="Wrong PIN", code=ERROR_ACCESS_DENIED)
 	
 	# check STB
 	stbList	= STB.objects.filter(subscriber=subs[0], hashKey=sha1)
 	if stbList.count() == 0:
 		# new STB, let's activate it
-		stb = STB(subscriber=subs[0], macAddr=mac, hashKey=sha1, fwVersion=request.GET.get('SW_VERSION'))
+		fwv=request.GET.get('SW_VERSION')
+		if not fwv:
+			fwv = '0.0.0'
+		stb = STB(subscriber=subs[0], macAddr=mac, hashKey=sha1, fwVersion=fwv)
 		stb.save()
 		return HttpResponse("<response><success>true</success></response>\n")
 	elif stbList.count() == 1:
