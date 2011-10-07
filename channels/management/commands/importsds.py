@@ -115,5 +115,5 @@ class Command(BaseCommand):
 				print self.stderr.write(u"*** Failed to save channel [%d]%s, reason %s\n" % (chanDB.xmltvID, chanDB.name, e.__unicode__()))
 				continue
 			
-			self.stdout.write(u"+++ [%d] %s\n" % (chanDB.xmltvID, chanDB.name))
+			self.stdout.write(u"added [%d] \n" % chanDB.xmltvID)
 			
