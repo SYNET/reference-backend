@@ -1,10 +1,16 @@
-# SYNET Interactive TV Middleware Reference Backend Application
 #
-# Copyright SYNESIS 2001
+# This is an internal tool to test SYNET-based set top boxes, 
+# and therefore no applicability to commercial use is guaranteed
+#
+# Copyright (c) 2011 SYNESIS LLC
 # www.synesis.ru
 # 
-# You are free to use this software as long as it is only 
-# used together with set top boxes equipped with SYNET embedded middleware
+# SYNESIS hereby provides you with non-exclusive, non-transferrable license 
+# to use this software within your organization, solely to to interface with 
+# set top boxes running SYNET middleware from SYNESIS
+# 
+# Any further questions please address to synet@synesis.ru
+# Technical suppport is available at http://synet.synesis.ru
 #
 
 from django.http import HttpResponse, HttpResponseRedirect

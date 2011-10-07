@@ -1,5 +1,20 @@
 # coding=utf-8
 #
+# This is an internal tool to test SYNET-based set top boxes, 
+# and therefore no applicability to commercial use is guaranteed
+#
+# Copyright (c) 2011 SYNESIS LLC
+# www.synesis.ru
+# 
+# SYNESIS hereby provides you with non-exclusive, non-transferrable license 
+# to use this software within your organization, solely to to interface with 
+# set top boxes running SYNET middleware from SYNESIS
+# 
+# Any further questions please address to synet@synesis.ru
+# Technical suppport is available at http://synet.synesis.ru
+#
+
+#
 # Implements parts of BILLING API, as defined by http://synet.synesis.ru/entries/20004511
 #
 from django.http import HttpResponse

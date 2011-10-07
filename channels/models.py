@@ -1,4 +1,19 @@
 #
+# This is an internal tool to test SYNET-based set top boxes, 
+# and therefore no applicability to commercial use is guaranteed
+#
+# Copyright (c) 2011 SYNESIS LLC
+# www.synesis.ru
+# 
+# SYNESIS hereby provides you with non-exclusive, non-transferrable license 
+# to use this software within your organization, solely to to interface with 
+# set top boxes running SYNET middleware from SYNESIS
+# 
+# Any further questions please address to synet@synesis.ru
+# Technical suppport is available at http://synet.synesis.ru
+#
+
+#
 # this module abstracts working with channels, it doesn't go into details of whether it's a DVB, IPTV or OTT channel
 #
 

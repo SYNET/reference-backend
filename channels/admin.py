@@ -1,3 +1,17 @@
+#
+# This is an internal tool to test SYNET-based set top boxes, 
+# and therefore no applicability to commercial use is guaranteed
+#
+# Copyright (c) 2011 SYNESIS LLC
+# www.synesis.ru
+# 
+# SYNESIS hereby provides you with non-exclusive, non-transferrable license 
+# to use this software within your organization, solely to to interface with 
+# set top boxes running SYNET middleware from SYNESIS
+# 
+# Any further questions please address to synet@synesis.ru
+# Technical suppport is available at http://synet.synesis.ru
+#
 from django.contrib import admin
 from channels.models import Channel, Tariff, ChannelCategory, Genre
 from subscribers.models import Subscriber
