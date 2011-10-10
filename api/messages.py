@@ -34,10 +34,9 @@ def isMessageRead(readDate):
 def messageList(request):
 	resp = HttpResponse(mimetype="text/xml")
 	
-	stbList = STB.objects.filter(hashKey=request.GET.get("sha1"))
+	stbList = STB.objects.filter(subscriber__accesscard__code=request.GET.get('cardNumber'))
 	if len(stbList) != 1:
-		# no pairing, request it
-		return contract.billingErrorResponse("Pairing required", contract.ERROR_NEED_PAIRING)
+		return contract.billingErrorResponse("User card %s unknown" % request.GET.get('cardNumber'), contract.ERROR_NOT_FOUND)
 	
 	doc = ET.Element("messages"); 
 	msgList = Message.objects.filter(subscriber=stbList[0].subscriber)
@@ -56,8 +55,7 @@ def messageList(request):
 def messageRead(request):
 	try:
 		msg = Message.objects.get(id=int(request.GET.get('msgID')),
-					  subscriber__accesscard__code=request.GET.get('cardNumber'),
-					  subscriber__stb__hashKey=request.GET.get('sha1'))
+					  subscriber__accesscard__code=request.GET.get('cardNumber'))
 	except Exception as e:
 		return contract.billingErrorResponse(e.__unicode__(), contract.ERROR_NOT_FOUND)
 	
@@ -69,8 +67,7 @@ def messageRead(request):
 def messageView(request):
 	try:
 		msg = Message.objects.get(id=int(request.GET.get('msgID')),
-					  subscriber__accesscard__code=request.GET.get('cardNumber'),
-					  subscriber__stb__hashKey=request.GET.get('sha1'))
+					  subscriber__accesscard__code=request.GET.get('cardNumber'))
 	except Exception as e:
 		return contract.billingErrorResponse(e.__unicode__(), contract.ERROR_NOT_FOUND)
 	
