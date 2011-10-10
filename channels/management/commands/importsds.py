@@ -57,7 +57,7 @@ class Command(BaseCommand):
 			for chML in muxML.findall("Service"):
 				xmltvML = chML.find("XMLTV"); 
 				if xmltvML.attrib['id'] == '--':
-					self.stderr.write("* Warn: auto-assign XMLTV ID %d to %s "% (xmltvCounter, chML.find('Name').attrib['name']))
+					self.stderr.write("* Warn: auto-assign XMLTV ID %d to %s "% (xmltvCounter, chML.find('Name').attrib['value']))
 					xmltvID = xmltvCounter
 					xmltvCounter += 1
 				else:	
