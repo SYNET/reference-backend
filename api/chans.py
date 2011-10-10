@@ -87,9 +87,10 @@ def IPTV_ChannelList(request):
 		location = ET.Element("ServiceLocation")
 		service.append(location)
 		
-		mcast = ET.Element("MulticastAddress")
+		mcast = ET.Element("IPMulticastAddress")
 		mcast.attrib['Address'] = serviceParam['host']
 		mcast.attrib['Port']	= serviceParam['port']
+		mcast.attrib['Streaming'] = 'udp'
 		location.append(mcast)
 		
 		rating = ET.Element("Rating")
