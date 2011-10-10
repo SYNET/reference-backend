@@ -40,7 +40,7 @@ class Command(BaseCommand):
 		# first get all top-level categories and push to database
 		categories	= {}
 		for c in doc.getroot().findall("Category"):
-			if c.attrib['channel'] != u'true':
+			if 'channel' in c.attrib and c.attrib['channel'] != u'true':
 				self.stderr.write('*** non-channel category skipped: %s'%c)
 				continue
 			
