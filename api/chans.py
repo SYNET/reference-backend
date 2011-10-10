@@ -45,7 +45,8 @@ def DVB_ChannelList(request):
 			xmltvML = ET.Element("XMLTV"); xmltvML.attrib['id'] = "%d"%ch.xmltvID; srvML.append(xmltvML)
 			nameML  = ET.Element("Name"); nameML.attrib['value'] = ch.name; srvML.append(nameML)
 			rateML	= ET.Element("Rating"); rateML.attrib['value'] = ch.mpaa; srvML.append(rateML)
-			ET.SubElement(srvML, 'Teaser', attrib={'url': "http://192.168.3.45/static/hls2/hls3/philips/variant_philips_1Mbps.m3u8"})
+			if (ch.demoURL != None and ch.demoURL != ''):
+				ET.SubElement(srvML, 'Teaser', attrib={'url': ch.demoURL})
 	
 	return HttpResponse(ET.tostring(doc, encoding='utf-8'))
 
@@ -100,6 +101,10 @@ def IPTV_ChannelList(request):
 		name = ET.Element("TextualIdentifier")
 		name.attrib['ServiceName'] = chan.name
 		service.append(name)
+		
+		if (ch.demoURL != None and ch.demoURL != ''):
+			ET.SubElement(service, 'Teaser', attrib={'url': ch.demoURL})
+		
 	
 	# or we're done now let's dump out
 	

@@ -116,7 +116,7 @@ class Service(models.Model):
 class STB(models.Model):
 	subscriber	= models.ForeignKey(Subscriber, blank=True, null=True)
 	macAddr		= models.CharField(max_length=17,  blank=False, unique=True)
-	hashKey		= models.CharField(max_length=512, blank=False, unique=True)
+	hashKey		= models.CharField(max_length=128, blank=False, unique=True)
 	fwVersion	= models.CharField(max_length=200, blank=False, )
 	service		= models.ForeignKey(Service, blank=True, null=True, default=None)
 

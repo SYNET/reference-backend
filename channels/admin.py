@@ -45,7 +45,7 @@ class ChannelAdmin(admin.ModelAdmin):
 	list_display_links = ['name']
 	search_fields	= ['name']
 	fieldsets = [
-		(None,		{'fields': [('name', 'enabled'), ('lcn', 'xmltvID', 'mpaa'), ('chanType', 'mode', 'mux'), 'tune']}),
+		(None,		{'fields': [('name', 'enabled'), ('lcn', 'xmltvID', 'mpaa'), ('chanType', 'mode', 'mux'), ('demoURL'), 'tune']}),
 	]
 	inlines = [TariffsInline]
 	ordering = ['lcn']
