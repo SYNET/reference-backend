@@ -32,7 +32,7 @@ class AccessCardsInline(admin.TabularInline):
 
 class MessageInline(admin.TabularInline):
 	model = Message
-	fields = ['urgent', 'sendDate', 'isRead', 'subject', 'text']
+	fields = ['urgent', 'sendDate', 'isRead', 'subject', 'text', 'imageUrl']
 	readonly_fields = ['isRead']
 	extra = 1
 	original = None
