@@ -79,11 +79,11 @@ def messageView(request):
 	msgML = ET.Element("message")
 	msgML.attrib['id'] = "%d" % msg.id
 	msgML.attrib['date'] = asctime(msg.sendDate.timetuple())
-	mX.attrib['read']	= "%s" % isMessageRead(msg.readDate)
-	if m.urgent :
-		mX.attrib['type'] = 'urgent'
+	msgML.attrib['read']	= "%s" % isMessageRead(msg.readDate)
+	if msg.urgent :
+		msgML.attrib['type'] = 'urgent'
 	else:
-		mX.attrib['type'] = 'info'	
+		msgML.attrib['type'] = 'info'	
 	ET.SubElement(msgML, "subject").text = msg.subject
 	ET.SubElement(msgML, "text").text=msg.text
 	if msg.imageUrl != None and msg.imageUrl != '':
