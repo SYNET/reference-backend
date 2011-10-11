@@ -52,7 +52,6 @@ class Message(models.Model):
 	subscriber	= models.ForeignKey(Subscriber)
 	subject		= models.CharField(max_length=200)
 	text		= models.CharField(max_length=500)
-	imageUrl	= models.URLField(u'Image URL', verify_exists=True, blank=True, null=True)
 	urgent		= models.BooleanField(max_length=10)
 	sendDate	= models.DateField()
 	readDate	= models.DateField(blank=True, null=True, editable=False)
