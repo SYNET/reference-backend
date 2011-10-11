@@ -108,10 +108,12 @@ def GetChannelsBySubscriptionStatus(request, enabled_flag):
 	except SubscriberNotAuthenticated as err:
 		return err.resp
 	
-	if bool(enabled_flag):
+	if enabled_flag == 'enabled':
 		chans = Channel.objects.filter(enabled=True, tariff__subscriber=sub).only('xmltvID')
-	else:
+	elif enabled_flag == 'disabled':
 		chans = Channel.objects.filter(enabled=True).exclude(tariff__subscriber=sub).only('xmltvID')
+	else:
+		return billingErrorResponse(msg="INVALID request flag [%s]" % enabled_flag, code=ERROR_ACCESS_DENIED)
 	
 	# write out
 	resp = HttpResponse()
