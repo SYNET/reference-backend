@@ -17,7 +17,7 @@
 # This is an implementation of API between this simple admin and Synet STB
 #
 from django.http import HttpResponse
-from subscribers.models import Subscriber, Message
+from subscribers.models import Subscriber, Message, AccessCard
 from synet.models import STB
 from django.template import Context, loader
 from time import asctime
@@ -27,24 +27,29 @@ from api import contract
 
 def isMessageRead(readDate):
 	if readDate :
-		return False
+		return "true"
 	else:
-		return True
+		return "false"
 
 def messageList(request):
 	resp = HttpResponse(mimetype="text/xml")
 	
-	stbList = STB.objects.filter(subscriber__accesscard__code=request.GET.get('cardNumber'))
-	if len(stbList) != 1:
+	# only access cards are searched
+	cards = AccessCard.objects.filter(code=request.GET.get('cardNumber'))
+	if len(cards) != 1:
 		return contract.billingErrorResponse("User card %s unknown" % request.GET.get('cardNumber'), contract.ERROR_NOT_FOUND)
 	
 	doc = ET.Element("messages"); 
-	msgList = Message.objects.filter(subscriber=stbList[0].subscriber)
+	msgList = Message.objects.filter(subscriber=cards[0].subscriber)
 	for m in msgList:
 		mX = ET.Element("message")
 		mX.attrib['id']		= "%d" % m.id
 		mX.attrib['date']	= asctime(m.sendDate.timetuple())
 		mX.attrib['read']	= "%s" % isMessageRead(m.readDate)
+		if m.urgent :
+			mX.attrib['type'] = 'urgent'
+		else:
+			mX.attrib['type'] = 'info'
 		subjX = ET.Element("subject")
 		subjX.text = m.subject
 		mX.append(subjX)

@@ -67,7 +67,7 @@ class Channel (models.Model):
 	chanType= models.CharField(u'Channel type', max_length=5, choices=CHAN_TYPE, default=u'TV')
 	mux		= models.ForeignKey(DvbMux, blank=True, null=True)
 	
-	demoURL	= models.URLField(u'URL to display in case ', verify_exists=True)
+	demoURL	= models.URLField(u'Teaser movie URL', verify_exists=True, help_text="HTTP Live streaming (.m3u8) or .mp4 over HTTP to display if channel is unavailable as part of current user's subscription")
 	
 	def __unicode__(self):
 		return "%s [xmltvID=%d]"%(self.name, self.xmltvID)
