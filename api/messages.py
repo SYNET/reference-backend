@@ -79,7 +79,7 @@ def messageView(request):
 	msgML = ET.Element("message")
 	msgML.attrib['id'] = "%d" % msg.id
 	msgML.attrib['date'] = asctime(msg.sendDate.timetuple())
-	mX.attrib['read']	= "%s" % isMessageRead(m.readDate)
+	mX.attrib['read']	= "%s" % isMessageRead(msg.readDate)
 	if m.urgent :
 		mX.attrib['type'] = 'urgent'
 	else:
