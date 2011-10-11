@@ -57,9 +57,6 @@ class Message(models.Model):
 	sendDate	= models.DateField()
 	readDate	= models.DateField(blank=True, null=True, editable=False)
 
-	def __unicode__(self):
-		return "Message ID=%d"%self.id
-	
 	def isRead(self):
 		if self.readDate == None:
 			return "Unread"
