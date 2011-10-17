@@ -61,16 +61,24 @@ class Channel (models.Model):
 	xmltvID = models.PositiveIntegerField(u"XMLTV ID", unique=True, help_text="channel logical name as seen by STB and refered by EPG server")
 	lcn		= models.PositiveIntegerField(u"LCN", help_text="Logical channel number, defines channel order")
 	tune  	= models.TextField(u"channel tune parameters", help_text="serialized form of channel tune data")
-	enabled	= models.BooleanField(default=True)	
+	enabled	= models.BooleanField(u'Show to users', default=True)	
 	mpaa 	= models.CharField(u'MPAA raiting', max_length=5, choices=MPAA_RATING)
 	mode	= models.CharField(u'Channel mode', max_length=5, choices=SERVICE_MODE, default=u'DVB')
 	chanType= models.CharField(u'Channel type', max_length=5, choices=CHAN_TYPE, default=u'TV')
 	mux		= models.ForeignKey(DvbMux, blank=True, null=True)
 	
-	demoURL	= models.URLField(u'Teaser movie URL', verify_exists=True, blank=True, null=True, help_text="HTTP Live streaming (.m3u8) or .mp4 over HTTP to display if channel is unavailable as part of current user's subscription")
+	demoURL	= models.URLField(u'Teaser movie URL', verify_exists=True, blank=True, null=True, default=None, help_text="HTTP Live streaming (.m3u8) or .mp4 over HTTP to display if channel is unavailable as part of current user's subscription")
+	
+	# for NPVR - defines a source of multicast address to obtain raw SPTS signal
+	mcastAddr 	= models.IPAddressField(u"Multicast address", blank=True, null=True, default=None)
+	mcastPort	= models.PositiveIntegerField(u'Multicast Port', blank=True, null=True, default=None)
+	npvrEnabled	= models.BooleanField(u'Enable NPVR', default=False)
 	
 	def __unicode__(self):
 		return "%s [xmltvID=%d]"%(self.name, self.xmltvID)
+	
+	class Meta:
+		unique_together = (u'mcastAddr', u'mcastPort')
 	
 class Tariff (models.Model):
 	name 		= models.CharField(u"tariff name", max_length=100)

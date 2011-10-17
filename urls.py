@@ -45,6 +45,13 @@ urlpatterns = patterns('',
 	(r'^synet/messages/messageText$', 'api.messages.messageView'),
 	(r'^synet/messages/messageRead$', 'api.messages.messageRead'),
 	
+	# Exposes NPVR contents according to protocol 
+	# defined by http://synet.synesis.ru/entries/20528696-npvr-vod
+	(r'^synet/npvr/$', 'api.npvr_public.Catalog'),
+	(r'^synet/npvr/channel/(?P<channelXmltvID>\d+)$', 'api.npvr_public.ChannelCatalog'),
+	(r'^synet/npvr/channel/(?P<channelXmltvID>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$', 'api.npvr_public.ChannelCatalogByDay'),
+	(r'^synet/npvr/record/(?P<recordID>\d+)$', 'api.npvr_public.RecordInfo'),
+	
 	# administration interface
     url(r'^synet/admin/', include(admin.site.urls)),
 )
