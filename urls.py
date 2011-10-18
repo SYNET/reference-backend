@@ -51,7 +51,8 @@ urlpatterns = patterns('',
 	(r'^synet/npvr/channel/(?P<channelXmltvID>\d+)$', 'api.npvr_public.ChannelCatalog'),
 	(r'^synet/npvr/channel/(?P<channelXmltvID>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$', 'api.npvr_public.ChannelCatalogByDay'),
 	(r'^synet/npvr/record/(?P<recordID>\d+)$', 'api.npvr_public.RecordInfo'),
-	
+	(r'^synet/npvr/record/catalog/(?P<catalogID>\d+)$', 'api.npvr_public.RecordsByCatalogId'),
+		
 	# administration interface
     url(r'^synet/admin/', include(admin.site.urls)),
 )
