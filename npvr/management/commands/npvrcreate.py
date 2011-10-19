@@ -58,10 +58,10 @@ class Command(BaseCommand):
 				# NPVR catalog was never ran against that channel
 				progress = NpvrRecordsStatistics(lastTime=datetime.utcfromtimestamp(0), channel=chan)
 			
-			minmax 	= Chunk.objects.filter(appType=APP_TYPE_NPVR, appId=chan.xmltvID, startTime__gte=progress.lastTime).aggregate(Min('startTime'), Max('startTime'))
+			minmax 	= Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID, startTime__gte=progress.lastTime).aggregate(Min('startTime'), Max('startTime'))
 			if minmax['startTime__min'] is None or minmax['startTime__max'] is None:
 				self.stderr.write("*** No new chunks for channel xmltvID=%d. Total %d chunks \n" % (chan.xmltvID, 
-									Chunk.objects.filter(appType=APP_TYPE_NPVR, appId=chan.xmltvID).count()))
+									Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID).count()))
 				progress.save()
 				continue
 			
@@ -69,7 +69,7 @@ class Command(BaseCommand):
 			for prog in EpgProgram.objects.filter(aux_id = u"%s"%chan.xmltvID, 
 												start__gte=int(calendar.timegm(minmax['startTime__min'].utctimetuple())), 
 												end__lte=int(calendar.timegm(minmax['startTime__max'].utctimetuple()))).order_by('start'):
-				chunks = Chunk.objects.filter(appType=APP_TYPE_NPVR, appId=chan.xmltvID, 
+				chunks = Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID, 
 					startTime__gte=datetime.utcfromtimestamp(prog.start), startTime__lte=datetime.utcfromtimestamp(prog.end)).order_by('startTime')
 				asset = Asset(appType=APP_TYPE_NPVR); asset.save();
 				record = NpvrRecord(

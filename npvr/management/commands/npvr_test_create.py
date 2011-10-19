@@ -60,7 +60,7 @@ class Command(BaseCommand):
 			while curTime < maxmin['end__max']:
 				c = Chunk(sequenceNumber = sequenceId, 
 					appType 	= APP_TYPE_NPVR,
-					appId		= chan.xmltvID,
+					inAppId		= chan.xmltvID,
 					durationMs	= 10000,
 					startTime	= datetime.utcfromtimestamp(curTime))
 				c.save()

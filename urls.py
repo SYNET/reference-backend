@@ -52,7 +52,14 @@ urlpatterns = patterns('',
 	(r'^synet/npvr/channel/(?P<channelXmltvID>\d+)/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$', 'api.npvr_public.ChannelCatalogByDay'),
 	(r'^synet/npvr/record/(?P<recordID>\d+)$', 'api.npvr_public.RecordInfo'),
 	(r'^synet/npvr/record/catalog/(?P<catalogID>\d+)$', 'api.npvr_public.RecordsByCatalogId'),
-		
+	
+	# asset access public API 
+	(r'^synet/asset/(?P<catalogID>\d+)/play$', 'api.asset_public.PlaylistByAsset'),
+	(r'^synet/asset/chunk/(?P<catalogID>\d+)/key$', 'api.asset_public.KeyByChunk'),
+	
+	# asset private API
+	(r'^synet/asset/chunk/add$', 'asset.api.ChunkCreated'),	
+	
 	# administration interface
     url(r'^synet/admin/', include(admin.site.urls)),
 )

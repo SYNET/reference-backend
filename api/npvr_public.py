@@ -102,7 +102,7 @@ def RecordInfo(request, recordID):
 				'filterUrl' : '/synet/npvr/record/catalog/%d'%record.catalogID
 			})
 	
-	
+	ET.SubElement(infoX, 'purchase', attrib={'playUrl' : request.make_absolute_uri('/synet/asset/%d/playlist'%record.asset.id)})
 	return HttpResponse(ET.tostring(infoX, encoding='utf-8'))
 
 def RecordsByCatalogId(request, catalogID):

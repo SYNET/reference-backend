@@ -24,13 +24,18 @@ class Chunk(models.Model):
 	# group ID could be something which is used later to create an asset
 	# and join chunks
 	appType			= models.IntegerField("to which application the chunk belongs to", choices=APPLICATION_TYPE)
-	appId			= models.IntegerField("internal ID to application - i.e. xmltvID of channel in NPVR", max_length=20, blank=False)
+	inAppId			= models.IntegerField("internal ID to application - i.e. xmltvID of channel in NPVR", max_length=20, blank=False)
 	durationMs		= models.IntegerField("duration in millisconds", blank=False, null=False)
 	startTime		= models.DateTimeField("start time, none if not for live stream", blank=True, null=True)
 	asset			= models.ForeignKey("Asset", blank=True, null=True)
+	dataUrl			= models.URLField("data location URL", blank=False, null=False)
+	
+	# stores decryption keys
+	aesKey			= models.CharField('AES-CBC-128 key', max_length=48)
+	aesIV			= models.CharField('AES key init vector', max_length=48)
 	
 	class Meta:
-		unique_together = (('sequenceNumber', 'appType', 'appId'), ('sequenceNumber', 'appType', 'appId', 'startTime'))
+		unique_together = (('sequenceNumber', 'appType', 'inAppId', 'startTime', 'dataUrl'))
 
 # entitlement is obtained while purchase
 # and used to validate client's requests
