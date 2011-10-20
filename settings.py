@@ -9,6 +9,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+from deployment_settings import DATABASES, SYNET_API_KEY
 # include the following directives into deployment_settings.py
 # which is out of GIT control and won't experience 
 
