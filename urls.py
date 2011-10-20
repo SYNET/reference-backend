@@ -54,9 +54,11 @@ urlpatterns = patterns('',
 	(r'^synet/npvr/record/catalog/(?P<catalogID>\d+)$', 'api.npvr_public.RecordsByCatalogId'),
 	
 	# asset access public API 
-	(r'^synet/asset/(?P<catalogID>\d+)/play$', 'api.asset_public.PlaylistByAsset'),
-	(r'^synet/asset/chunk/(?P<catalogID>\d+)/key$', 'api.asset_public.KeyByChunk'),
+	(r'^synet/asset/(?P<assetId>\d+)/play$', 'api.asset_public.PlaylistByAsset'),
+	(r'^synet/asset/chunk/(?P<chunkId>\d+)/key$', 'api.asset_public.KeyByChunk'),
 	
+	# live feed access API
+	(r'^synet/channels/(?P<channelXmltvID>\d+)/live$', 'api.asset_public.LivePlaylist'),
 	# asset private API
 	(r'^synet/asset/chunk/add$', 'asset.api.ChunkCreated'),	
 	
