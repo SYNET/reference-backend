@@ -21,7 +21,7 @@ from django.db import models
 # and is designed to work without other apps
 # 
 class EpgCategory(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     ctg_id = models.IntegerField(db_index=True)
     pr_id = models.IntegerField()
     start = models.IntegerField(db_index=True)
@@ -32,7 +32,7 @@ class EpgCategory(models.Model):
 
 
 class EpgProgram(models.Model):
-    pr_id = models.IntegerField(primary_key=True)
+    pr_id = models.AutoField(primary_key=True)
     start = models.IntegerField(db_index=True, null=False)
     end = models.IntegerField(db_index=True, null=False)
     aux_id = models.CharField(max_length=384, null=False, db_index=True)

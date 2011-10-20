@@ -10,7 +10,7 @@ from datetime import datetime
 # checks if client is valid
 #
 def clientValid(apiKey):
-	return apiKey == 'synet'
+	return apiKey == settings.SYNET_API_KEY
 
 #
 # Returns a playlist according to client's entitlement

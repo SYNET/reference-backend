@@ -93,6 +93,7 @@ def RecordInfo(request, recordID):
 	 'item', attrib={
 		'label' : "%d/%d %d:%d" % (record.airTime.month, record.airTime.day, record.airTime.hour, record.airTime.minute)
 	})
+	
 	if record.catalogID != None and record.catalogID != 0:
 		count = NpvrRecord.objects.filter(catalogID=record.catalogID).count()
 		if count > 0:
@@ -102,7 +103,7 @@ def RecordInfo(request, recordID):
 				'filterUrl' : '/synet/npvr/record/catalog/%d'%record.catalogID
 			})
 	
-	ET.SubElement(infoX, 'purchase', attrib={'playUrl' : request.make_absolute_uri('/synet/asset/%d/playlist'%record.asset.id)})
+	ET.SubElement(infoX, 'purchase', attrib={'playUrl' : request.build_absolute_uri('/synet/asset/%d/play'%record.asset.id)})
 	return HttpResponse(ET.tostring(infoX, encoding='utf-8'))
 
 def RecordsByCatalogId(request, catalogID):

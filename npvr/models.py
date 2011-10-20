@@ -19,3 +19,4 @@ class NpvrRecord(models.Model):
 class NpvrRecordsStatistics(models.Model):
 	channel		= models.ForeignKey(Channel)
 	lastTime	= models.DateTimeField("Last timepoint which was processed for this channel")
+	

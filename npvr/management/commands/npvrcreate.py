@@ -36,6 +36,23 @@ from npvr.models import NpvrRecord, NpvrRecordsStatistics
 class Command(BaseCommand):
 	args = 'npvrcreate [channel xmltvID]'
 	
+	# searches against actual database records
+	def searchChannels(self):
+		self.stdout.write('Scanning which channels have NPVR data...\n'); self.stdout.flush()
+		chansFromDB = Channel.objects.filter(enabled=True).values_list('xmltvID', flat=True);
+		chansFromAsset = Chunk.objects.filter(appType=APP_TYPE_NPVR).values_list('inAppId', flat=True).distinct()
+		
+		validChans = []
+		invalidChans = []
+		
+		for ch in chansFromAsset:
+			if ch in chansFromDB: 
+				validChans += [ch]
+			else:
+				invalidChans += [ch]
+		
+		return (validChans, invalidChans)
+	
 	@transaction.commit_on_success
 	def handle(self, *args, **options):
 		self.stdout = codecs.getwriter('utf-8')(self.stdout, errors='replace')
@@ -47,16 +64,16 @@ class Command(BaseCommand):
 			except Channel.DoesNotExist as e:
 				raise CommandError("Channel with xmltvID=%d not found\n"%args[0])
 		elif len(args) == 0:
-			channels = Channel.objects.filter(npvrEnabled=True, enabled=True)
+			chans = self.searchChannels()
+			if len(chans[1]) > 0:
+				sys.stderr.write('ASSET database contains data for unregistered channels %s'%chans[1])
+			channels = chans[0]
 		else:
 			raise CommandError(args)
 		
-		for chan in channels:
-			try:
-				progress = NpvrRecordsStatistics.objects.get(channel=chan)
-			except NpvrRecordsStatistics.DoesNotExist as e:
-				# NPVR catalog was never ran against that channel
-				progress = NpvrRecordsStatistics(lastTime=datetime.utcfromtimestamp(0), channel=chan)
+		for chanXid in channels:
+			chan = Channel.objects.get(xmltvID=chanXid)
+			progress, pCreated = NpvrRecordsStatistics.objects.get_or_create(channel=chan, defaults={'lastTime' : datetime.utcfromtimestamp(0)})
 			
 			minmax 	= Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID, startTime__gte=progress.lastTime).aggregate(Min('startTime'), Max('startTime'))
 			if minmax['startTime__min'] is None or minmax['startTime__max'] is None:
@@ -66,9 +83,13 @@ class Command(BaseCommand):
 				continue
 			
 			# we only handle complete programs. until program is fully complete it won't appear in NPVR
-			for prog in EpgProgram.objects.filter(aux_id = u"%s"%chan.xmltvID, 
-												start__gte=int(calendar.timegm(minmax['startTime__min'].utctimetuple())), 
-												end__lte=int(calendar.timegm(minmax['startTime__max'].utctimetuple()))).order_by('start'):
+			searchFromT = minmax['startTime__min']
+			searchToT	= minmax['startTime__max']
+			sys.stdout.write('looking programs on channel=%d [%s:%s]\n' % (chan.xmltvID, searchFromT.ctime(), searchToT.ctime()))
+			
+			for prog in EpgProgram.objects.filter(aux_id = u"%d"%chan.xmltvID, 
+												start__gte=int(calendar.timegm(searchFromT.utctimetuple())), 
+												end__lte=int(calendar.timegm(searchToT.utctimetuple()))).order_by('start'):
 				chunks = Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID, 
 					startTime__gte=datetime.utcfromtimestamp(prog.start), startTime__lte=datetime.utcfromtimestamp(prog.end)).order_by('startTime')
 				asset = Asset(appType=APP_TYPE_NPVR); asset.save();

@@ -9,6 +9,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+# Use this value to communicate between server and hls-utils
+# you must generate yours, i.e. using openssl rand 16 -hex
+SYNET_API_KEY = '64cff418758adca1c87d148adeda3144'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
