@@ -9,28 +9,31 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+# include the following directives into deployment_settings.py
+# which is out of GIT control and won't experience 
+
 # Use this value to communicate between server and hls-utils
 # you must generate yours, i.e. using openssl rand 16 -hex
-SYNET_API_KEY = '64cff418758adca1c87d148adeda3144'
+#SYNET_API_KEY = '64cff418758adca1c87d148adeda3144'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': './data.sqdb',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    },
-    'epg': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': './epg.sqdb',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#        'NAME': '',                      # Or path to database file if using sqlite3.
+#        'USER': '',                      # Not used with sqlite3.
+#        'PASSWORD': '',                  # Not used with sqlite3.
+#        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+#        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+#    },
+#    'epg': {
+#        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#        'NAME': '',                      # Or path to database file if using sqlite3.
+#        'USER': '',                      # Not used with sqlite3.
+#        'PASSWORD': '',                  # Not used with sqlite3.
+#        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+#        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+#    }
+#}
 
 DATABASE_ROUTERS = ['synet.db.Router']
 
