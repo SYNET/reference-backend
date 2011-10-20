@@ -21,18 +21,18 @@ from django.db import models
 # and is designed to work without other apps
 # 
 class EpgCategory(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     ctg_id = models.IntegerField(db_index=True)
     pr_id = models.IntegerField()
     start = models.IntegerField(db_index=True)
     end = models.IntegerField(db_index=True)
     class Meta:
 		db_table = u'categories'
-		unique_together = (u'ctg_id', u'pr_id')
+		# unique_together = (u'ctg_id', u'pr_id')
 
 
 class EpgProgram(models.Model):
-    pr_id = models.IntegerField(primary_key=True)
+    pr_id = models.AutoField(primary_key=True)
     start = models.IntegerField(db_index=True, null=False)
     end = models.IntegerField(db_index=True, null=False)
     aux_id = models.CharField(max_length=384, null=False, db_index=True)
@@ -45,4 +45,4 @@ class EpgProgram(models.Model):
     descr_l = models.CharField(max_length=48, null=False)
     class Meta:
 		db_table = u'programs'
-		unique_together = ('aux_id', 'start')
+		#unique_together = ('aux_id', 'start')
