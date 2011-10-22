@@ -46,10 +46,10 @@ def LivePlaylist(request, channelXmltvID):
 	for chunk in Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=int(channelXmltvID), startTime__gte=(datetime.datetime.utcnow() - datetime.timedelta(minutes=30))).order_by('startTime'):
 		# todo : handle DISCONTINUITY
 		if not headerReady:
-			resp.write('#EXTM3U\n#EXT-X-TARGETDURATION:%.2f\n#EXT-X-VERSION:2\n#EXT-X-MEDIA-SEQUENCE:%d\n'%(chunk.durationMs/1000, chunk.sequenceNumber))
+			resp.write('#EXTM3U\n#EXT-X-TARGETDURATION:%.2f\n#EXT-X-VERSION:2\n#EXT-X-MEDIA-SEQUENCE:%.2f\n'%(chunk.durationMs/1000.0, chunk.sequenceNumber))
 			headerReady = True
 		
-		resp.write('#EXTINF: %.2f\n'%(chunk.durationMs/1000))
+		resp.write('#EXTINF: %.2f\n'%(chunk.durationMs/1000.0))
 		if chunk.aesKey != None and chunk.aesKey != '':
 			if prevKey is None or prevKey != chunk.aesKey:
 				prevKey = chunk.aesKey
@@ -67,7 +67,7 @@ def PlaylistByAsset(request, assetId):
 	
 	prevKey = None
 	for chunk in Chunk.objects.filter(asset__id=int(assetId)).order_by('startTime'):
-		resp.write('#EXTINF: %.2f\n'%(chunk.durationMs/1000))
+		resp.write('#EXTINF: %.2f\n'%(chunk.durationMs/1000.0))
 		if chunk.aesKey != None and chunk.aesKey != '':
 			if prevKey is None or prevKey != chunk.aesKey:
 				prevKey = chunk.aesKey

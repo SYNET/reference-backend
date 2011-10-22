@@ -5,12 +5,13 @@
 from django.http import HttpResponse, HttpResponseServerError
 from asset.models import Chunk
 from datetime import datetime
+from settings import SYNET_API_KEY
 
 # 
 # checks if client is valid
 #
 def clientValid(apiKey):
-	return apiKey == settings.SYNET_API_KEY
+	return apiKey == SYNET_API_KEY
 
 #
 # Returns a playlist according to client's entitlement
@@ -35,7 +36,7 @@ def ChunkCreated(request):
 	try:
 		Chunk(sequenceNumber	= int(request.GET.get('sequence')),
 				startTime		= datetime.utcfromtimestamp(int(float(request.GET.get('startTimeEpoch')))),
-				durationMs		= int(float(request.GET.get('duration'))*1000),
+				durationMs		= int(float(request.GET.get('duration'))*1000.0),
 				appType			= int(request.GET.get('appType')),
 				inAppId			= int(request.GET.get('channelID')),
 				aesKey			= request.GET.get('aesKey'), 
