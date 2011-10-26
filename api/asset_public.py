@@ -66,7 +66,11 @@ def PlaylistByAsset(request, assetId):
 	resp.write('#EXTM3U\n#EXT-X-TARGETDURATION:10\n#EXT-X-VERSION:2\n#EXT-X-MEDIA-SEQUENCE:0\n')
 	
 	prevKey = None
+	prevTime = None
 	for chunk in Chunk.objects.filter(asset__id=int(assetId)).order_by('startTime'):
+		if prevTime and (chunk.startTime - prevTime > datetime.timedelta(milliseconds=chunk.durationMs*1.2)):
+			resp.write('EXT-X-DISCONTINUITY\n')
+		prevTime = chunk.startTime
 		resp.write('#EXTINF: %.2f\n'%(chunk.durationMs/1000.0))
 		if chunk.aesKey != None and chunk.aesKey != '':
 			if prevKey is None or prevKey != chunk.aesKey:

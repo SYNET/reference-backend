@@ -30,13 +30,16 @@ BASE_URL = '/synet/npvr'
 # Provides API between NPVR and STB
 #
 
+def noEntries():
+	return HttpResponse("<error><msg>No Entries</msg></error>")
+
 #
 # Returns further URIs to available catalog
 #
 def Catalog(request):
 	rX = ET.Element("elements")
-	for id in Channel.objects.filter(npvrEnabled=True).values_list('xmltvID'):
-		ET.SubElement(rX, "list", attrib={'navigateUrl' : BASE_URL+"/channel/%d"%id})
+	for ch in Channel.objects.filter(npvrEnabled=True):
+		ET.SubElement(rX, "list", attrib={'navigateUrl' : BASE_URL+"/channel/%d"%ch.xmltvID}).text=ch.name
 	
 	return HttpResponse(ET.tostring(rX, encoding='utf-8'))
 

@@ -66,7 +66,7 @@ class Command(BaseCommand):
 		elif len(args) == 0:
 			chans = self.searchChannels()
 			if len(chans[1]) > 0:
-				sys.stderr.write('ASSET database contains data for unregistered channels %s'%chans[1])
+				sys.stderr.write('ASSET database contains data for unregistered channels %s\n'%chans[1])
 			channels = chans[0]
 		else:
 			raise CommandError(args)
