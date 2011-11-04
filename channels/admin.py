@@ -13,7 +13,7 @@
 # Technical suppport is available at http://synet.synesis.ru
 #
 from django.contrib import admin
-from channels.models import Channel, Tariff, ChannelCategory, Genre
+from channels.models import Channel, Tariff, ChannelCategory, Genre, DvbMux
 from subscribers.models import Subscriber
 
 # ---- TARIFF view 
@@ -46,12 +46,15 @@ class ChannelAdmin(admin.ModelAdmin):
 	search_fields	= ['name']
 	fieldsets = [
 		(None,		{'fields': [('name', 'enabled', 'npvrEnabled'), ('lcn', 'xmltvID', 'mpaa'), 
-								('chanType', 'mode', 'mux'), ('demoURL'), 
+								('chanType', 'mux'), ('demoURL'), 
 								('mcastAddr', 'mcastPort'), 'tune',]}),
 	]
 	inlines = [TariffsInline]
 	ordering = ['lcn']
 
+class MuxAdmin(admin.ModelAdmin):
+	pass;
+ 
 # --- genres assignments --- 
 class GenresAdmin(admin.ModelAdmin):
 	list_display = ['name']
@@ -68,6 +71,7 @@ class CategoryAdmin(admin.ModelAdmin):
 	filter_vertical = ('channels',)
 	inlines = [GenresInline, ChannelCategoryInline]
 
+admin.site.register(DvbMux, MuxAdmin)
 admin.site.register(Channel, ChannelAdmin)
 admin.site.register(Tariff, TariffAdmin)
 admin.site.register(ChannelCategory, CategoryAdmin)

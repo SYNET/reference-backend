@@ -33,13 +33,15 @@ BASE_URL = '/synet/npvr'
 def noEntries():
 	return HttpResponse("<error><msg>No Entries</msg></error>")
 
+def recordName(record):
+	return '%u/%u %u:%u %s' % (record.airTime.month, record.airTime.day, record.airTime.hour, record.airTime.minute, record.title)	
 #
 # Returns further URIs to available catalog
 #
 def Catalog(request):
 	rX = ET.Element("elements")
 	for ch in Channel.objects.filter(npvrEnabled=True):
-		ET.SubElement(rX, "list", attrib={'navigateUrl' : BASE_URL+"/channel/%d"%ch.xmltvID}).text=ch.name
+		ET.SubElement(rX, "list", attrib={'navigateUrl' : request.build_absolute_uri(BASE_URL+"/channel/%d"%ch.xmltvID)}).text=ch.name
 	
 	return HttpResponse(ET.tostring(rX, encoding='utf-8'))
 
@@ -53,11 +55,14 @@ def ChannelCatalog(request, channelXmltvID):
 	
 	# present day by day list
 	rX = ET.Element("elements")
-	for i in range((dR['airTime__max']+datetime.timedelta(days=1)-dR['airTime__min']).days):
-		day = dR['airTime__max']+datetime.timedelta(days=i)
+	day= datetime.datetime(year = dR['airTime__min'].year,
+							month = dR['airTime__min'].month,
+							day   = dR['airTime__min'].day) 
+	while day < dR['airTime__max']:
 		ET.SubElement(rX, "list", 
-			attrib={'navigateUrl' : BASE_URL+"/channel/%s/%d/%d/%d" % (channelXmltvID, day.year, day.month, day.day)}
+			attrib={'navigateUrl' : request.build_absolute_uri(BASE_URL+"/channel/%s/%d/%d/%d" % (channelXmltvID, day.year, day.month, day.day))}
 			).text = "%d/%d" % (day.month, day.day)
+		day += datetime.timedelta(days=1)
 	
 	return HttpResponse(ET.tostring(rX, encoding='utf-8'))
 
@@ -65,11 +70,11 @@ def ChannelCatalogByDay(request, channelXmltvID, year, month, day):
 	dayFrom = datetime.datetime(int(year), int(month), int(day))
 	records = NpvrRecord.objects.filter(channel__xmltvID=int(channelXmltvID),
 										airTime__gte=dayFrom,
-										airTime__lt=dayFrom+datetime.timedelta(hours=23, minutes=59))
+										airTime__lte=dayFrom+datetime.timedelta(hours=23, minutes=59))
 	
 	rX = ET.Element("elements")
 	for record in records: 
-		ET.SubElement(rX, "item", attrib={'infoUrl' : BASE_URL+"/record/%d" % record.id}).text = record.title
+		ET.SubElement(rX, "asset", attrib={'infoUrl' : request.build_absolute_uri(BASE_URL+"/record/%d" % record.id)}).text = recordName(record)
 	
 	return HttpResponse(ET.tostring(rX, encoding='utf-8'))
 
@@ -77,22 +82,27 @@ def RecordInfo(request, recordID):
 	try : 
 		record = NpvrRecord.objects.get(id=int(recordID))
 	except NpvrRecord.DoesNotExist as e:
-		return HttpResponse("<error>invalid request</error>", code=404)
+		return HttpResponse("<error>invalid request</error>", status=404)
 	
 	infoX = ET.Element('info')
 	metaX = ET.SubElement(infoX, 'metadata')
 	
 	if record.posterUrl != None and record.posterUrl != '':
-		ET.SubElement(metaX, 'poster', attrib={'url' : record.posterUrl})
+		ET.SubElement(metaX, 'poster', attrib={'smallImageUrl' : record.posterUrl})
 	
 	# now we provide information about channel and air time
-	dataX = ET.SubElement(metaX, 'data')
-	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'name' : "Channel"}),
+	dataX = ET.SubElement(metaX, 'data', attrib={'stars' : '3.5'})
+	dataX.tail = 'Hi there'
+	ET.SubElement(ET.SubElement(dataX, 'group'),
+	 'item', attrib={
+		'label'		: record.title
+	}).tail = "Hi Kolya"
+	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label' : "Channel "}),
 	 'item', attrib={
 		'label' 	: record.channel.name,
-		'filterUrl'	: BASE_URL + '/channel/%d' % record.channel.xmltvID 
-	})
-	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'name' : 'Air Time'}),
+		'filterUrl'	: request.build_absolute_uri(BASE_URL + '/channel/%d' % record.channel.xmltvID) 
+	}).tail = ' : '
+	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label': 'Air Time '}),
 	 'item', attrib={
 		'label' : "%d/%d %d:%d" % (record.airTime.month, record.airTime.day, record.airTime.hour, record.airTime.minute)
 	})
@@ -100,13 +110,14 @@ def RecordInfo(request, recordID):
 	if record.catalogID != None and record.catalogID != 0:
 		count = NpvrRecord.objects.filter(catalogID=record.catalogID).count()
 		if count > 0:
-			ET.SubElement(ET.SubElement(dataX, 'group', attrib={'name' : 'Other series'}),
+			ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label' : 'Other series'}),
 			 'item', attrib={
 				'label' 	: u"Other series (%d)"%count,
-				'filterUrl' : '/synet/npvr/record/catalog/%d'%record.catalogID
+				'filterUrl' : request.build_absolute_uri('/synet/npvr/record/catalog/%d'%record.catalogID)
 			})
 	
-	ET.SubElement(infoX, 'purchase', attrib={'playUrl' : request.build_absolute_uri('/synet/asset/%d/play'%record.asset.id)})
+	ET.SubElement(infoX, 'description').text = record.description	
+	ET.SubElement(infoX, 'purchase', attrib={'playUrl' : request.build_absolute_uri('/synet/asset/%d/play/hls.m3u8'%record.id)})
 	return HttpResponse(ET.tostring(infoX, encoding='utf-8'))
 
 def RecordsByCatalogId(request, catalogID):
@@ -114,7 +125,7 @@ def RecordsByCatalogId(request, catalogID):
 	
 	for record in NpvrRecord.objects.filter(catalogID=catalogID):
 		ET.SubElement(rX, 'item', 
-		attrib={'filterUrl' : '/synet/npvr/record/%d'%record.id}
-		).text = record.title
+		attrib={'filterUrl' : request.build_absolute_uri('/synet/npvr/record/%d'%record.id)}
+		).text = recordName(record)
 	
 	return HttpResponse(ET.tostring(rX, encoding='utf-8'))

@@ -175,7 +175,8 @@ class Command(BaseCommand):
 		except Exception as e:
 			raise CommandError('*** Error while parsing %s: %s' % (args[1], e))
 		self.stdout.write('done!\n')
-		
+		import pdb; pdb.set_trace();
+
 		self.stdout.write('Parsing EPG from %s...' % args[0]); self.stdout.flush()
 		try:
 			programmes = xmltv.read_programmes(open(args[0], 'r'))

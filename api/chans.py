@@ -17,7 +17,7 @@ from django.views.decorators.cache import cache_page
 from xml.etree import ElementTree as ET
 import re
 import logging
-from channels.models import Channel, DvbMux, ChannelCategory
+from channels.models import Channel, DvbTMux, DvbCMux, ChannelCategory
 from synet.models import Service, STB
 from api.contract import getSubscriber, SubscriberNotAuthenticated
 
@@ -28,9 +28,38 @@ logger = logging.getLogger(__name__)
 #
 #
 
-def DVB_ChannelList(request):
+def getChannelXml(ch):
+	srvML   = ET.XML(ch.tune); 
+	lcnML   = ET.Element("LCN"); lcnML.attrib['value'] = "%d"%ch.lcn; srvML.append(lcnML)
+	xmltvML = ET.Element("XMLTV"); xmltvML.attrib['id'] = "%d"%ch.xmltvID; srvML.append(xmltvML)
+	nameML  = ET.Element("Name"); nameML.attrib['value'] = ch.name; srvML.append(nameML)
+	rateML  = ET.Element("Rating"); rateML.attrib['value'] = ch.mpaa; srvML.append(rateML)
+	if (ch.demoURL != None and ch.demoURL != ''):
+		ET.SubElement(srvML, 'Teaser', attrib={'url': ch.demoURL})
+	return srvML
+
+def Get_DVB_T_ChannelList(request):
+	doc = ET.Element('Multiplexers', attrib={'type' : 'ter'})
+	for mux in DvbTMux.objects.all():
+		muxML = ET.Element('Multiplexer')
+		muxML.attrib['fec_hp']      = mux.fec_hp
+		muxML.attrib['fec_lp']      = mux.fec_lp
+		muxML.attrib['freq']        = "%d" % mux.freq
+		muxML.attrib['modulation']  = mux.modulation
+		muxML.attrib['bandwidth'] 	= mux.bandwidth
+		muxML.attrib['guard_interval'] = mux.guardInterval
+		muxML.attrib['hierarchy']	= mux.hierarchy
+		muxML.attrib['transmit_mode']  = mux.transmitMode
+		doc.append(muxML)
+		
+		for ch in mux.channel_set.filter(enabled=True):
+			muxML.append(getChannelXml(ch))
+	
+	return HttpResponse(ET.tostring(doc, encoding='utf-8'))
+
+def Get_DVB_C_ChannelList(request):
 	doc = ET.Element('Multiplexers')
-	for mux in DvbMux.objects.all():
+	for mux in DvbCMux.objects.all():
 		muxML = ET.Element('Multiplexer')
 		muxML.attrib['fec_hp'] 		= mux.fec_hp
 		muxML.attrib['fec_lp'] 		= mux.fec_lp
@@ -40,14 +69,8 @@ def DVB_ChannelList(request):
 		doc.append(muxML)
 		
 		for ch in mux.channel_set.filter(enabled=True, mode='DVB'):
-			srvML	= ET.XML(ch.tune); muxML.append(srvML)
-			lcnML 	= ET.Element("LCN"); lcnML.attrib['value'] = "%d"%ch.lcn; srvML.append(lcnML)
-			xmltvML = ET.Element("XMLTV"); xmltvML.attrib['id'] = "%d"%ch.xmltvID; srvML.append(xmltvML)
-			nameML  = ET.Element("Name"); nameML.attrib['value'] = ch.name; srvML.append(nameML)
-			rateML	= ET.Element("Rating"); rateML.attrib['value'] = ch.mpaa; srvML.append(rateML)
-			if (ch.demoURL != None and ch.demoURL != ''):
-				ET.SubElement(srvML, 'Teaser', attrib={'url': ch.demoURL})
-	
+			muxML.append(getChannelXml(ch))
+		
 	return HttpResponse(ET.tostring(doc, encoding='utf-8'))
 
 # 
@@ -58,7 +81,7 @@ def DVB_ChannelList(request):
 #
 # this request does not perform any authentication
 #
-def IPTV_ChannelList(request):
+def Get_IPTV_ChannelList(request):
 	chanList = Channel.objects.filter(enabled=True, mode='IPTV')
 	chanList.order_by('lcn')
 	

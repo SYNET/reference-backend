@@ -22,7 +22,7 @@ from django.db import connections, transaction
 from django.db.models import Min, Max
 from django.core.management.base import BaseCommand, CommandError
 from epg.models import EpgCategory, EpgProgram
-from asset.models import Asset, Chunk, APP_TYPE_NPVR
+from asset.models import Chunk, APP_TYPE_NPVR
 from channels.models import Channel
 from npvr.models import NpvrRecord, NpvrRecordsStatistics
 
@@ -90,24 +90,41 @@ class Command(BaseCommand):
 			for prog in EpgProgram.objects.filter(aux_id = u"%d"%chan.xmltvID, 
 												start__gte=int(calendar.timegm(searchFromT.utctimetuple())), 
 												end__lte=int(calendar.timegm(searchToT.utctimetuple()))).order_by('start'):
-				chunks = Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID, 
-					startTime__gte=datetime.utcfromtimestamp(prog.start), startTime__lte=datetime.utcfromtimestamp(prog.end)).order_by('startTime')
-				asset = Asset(appType=APP_TYPE_NPVR); asset.save();
+				if (prog.end <= prog.start):
+					self.stderr.write('program %s has wrong timing [%d, %d]\n' % (prog.title, prog.start, prog.end))
+					continue
+
+				chunks = Chunk.objects.filter(appType=APP_TYPE_NPVR, inAppId=chan.xmltvID,
+						startTime__gte=datetime.utcfromtimestamp(prog.start), startTime__lte=datetime.utcfromtimestamp(prog.end))
+ 				if chunks.count() == 0:
+					self.stderr.write('program %s at [%u:%u] has no data, skipping\n' % (prog.title, prog.start, prog.end))
+					continue 
 				record = NpvrRecord(
-					asset 	= asset,
 					channel	= chan,
 					airTime	= datetime.utcfromtimestamp(prog.start),
 					durationSec = (prog.end-prog.start), 
 					title 	= prog.title,
 					description = prog.descr,
-					posterUrl	= prog.icon)
+					posterUrl	= prog.icon,
+					dataBytes	= 0,
+					durationMs	= 0)
 				if prog.cat_id != None and prog.cat_id != 0:
 					record.catalogID = prog.cat_id;
 				else:
 					record.catalogID = None
 				record.save()
 				
-				chunks.update(asset = record.asset)
+				chunks.update(asset = record)
+				record.calculateBandwidth()
+				if record.dataBytes == 0 or record.durationMs == 0:
+					import pdb; pdb.set_trace()
+					self.stderr.write('Program %s starting %s has wrong duration chunks'%(record.title, record.airTime))
+					continue
+				record.save()
 				progress.lastTime = datetime.utcfromtimestamp(prog.end) # update statistics of last processed program. we don't expect any intersections
-				self.stdout.write('+ [%d]@%s : %s\n' % (chan.xmltvID, record.airTime, record.title))
+				self.stdout.write('asset[%u] : channel[%d]@%s : %s\n' % (record.id, chan.xmltvID, record.airTime, record.title))
 			progress.save()
+			
+			# now dump some statistics
+			self.stdout.write('dump of SQL statements follows ****************\n%s\n' %
+				 sorted(connections['default'].queries, key= lambda t : t['time']))

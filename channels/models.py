@@ -20,6 +20,8 @@
 from django.db import models
 from subscribers.models import Subscriber
 
+SYM_PARAM_SIZE = 30
+
 MPAA_RATING = (
 	(u"G", u'[G] General audiences'),
 	(u"PG", u'[PG] Parental guidance suggested'),
@@ -35,6 +37,7 @@ CHAN_TYPE = (
 )
 
 MODULATION_TYPE = (
+	(u'QAM64', 	u'QAM-64'),
 	(u'QAM256',	u'QAM-256'),
 	(u'QAM56',	u'QAM-56')
 )
@@ -45,17 +48,77 @@ SERVICE_MODE = (
 	(u'OTT', 	u'Over-the-internet')
 )
 
+BANDWIDTH_MODE = (
+	(u"BANDWIDTH_8", u'8'),
+	(u"BANDWIDTH_7", u'7'),
+	(u"BANDWIDTH_6", u'6'),
+	(u"BANDWIDTH_AUTO", u'Auto')
+)
+
+HIERARCHY_MODE = (
+	(u"HIERARCHY_NONE", u'None'),
+	(u"HIERARCHY_1", u'1'),
+	(u"HIERARCHY_2", u'2'),
+	(u"HIERARCHY_3", u'3'),
+	(u"HIERARCHY_4", u'4'),
+	(u"HIERARCHY_AUTO", u'Auto')
+)
+
+GUARD_INTERVAL = (
+	(u"GUARD_1_32", u'1/32'),
+	(u"GUARD_1_16", u'1/16'),
+	(u"GUARD_1_8", u'1/8'),
+	(u"GUARD_1_4", u'1/4'),
+	(u"GUARD_AUTO", u'Auto')
+)
+
+TRANSMIT_MODE = (
+	(u"TRANSMIT_2K", u'2K'),
+	(u"TRANSMIT_8K", u'8K'),
+	(u"TRANSMIT_AUTO", u'Auto'),
+)
+
 # still need to be aware of DVB Muxes
 class DvbMux (models.Model):
-	fec_hp	= models.CharField(u'FEC_HP', max_length=10, blank=False)
-	fec_lp	= models.CharField(u'FEC_LP', max_length=10, blank=False)
+	fec_hp	= models.CharField(u'FEC_HP', max_length=SYM_PARAM_SIZE, blank=False)
+	fec_lp	= models.CharField(u'FEC_LP', max_length=SYM_PARAM_SIZE, blank=False)
 	freq	= models.PositiveIntegerField(u"Frequency Hz")
-	modulation = models.CharField(u"modulation", choices=MODULATION_TYPE, max_length=10, blank=False)
-	symbolRate = models.PositiveIntegerField(u"Symbol rate")
+	modulation = models.CharField(u"modulation", choices=MODULATION_TYPE, max_length=SYM_PARAM_SIZE, blank=False)
 	
+	def type(self):
+		m = 'ERROR'
+		try : 
+			m = self.dvbcmux
+			return 'DVB-C'
+		except DvbCMux.DoesNotExist, e:
+			pass
+		
+		try:
+			m = self.dvbtmux
+			return 'DVB-T'
+		except DvbTMux.DoesNotExist, e:
+			pass
+		
+		return m
+
 	def __unicode__(self):
-		return "%s @ %d Khz @ %d Ksym" % (self.modulation, (self.freq)/1000, (self.symbolRate/1000))
-	
+		m = self.type()
+		if m == 'DVB-C':
+			return "DVB-C %s @ %d Khz, %d KSym" % (self.modulation, (self.freq)/1000, self.dvbcmux.symbolRate/1000)
+		elif m == 'DVB-T':
+			return "DVB-T %s @ %d Khz, band=%s, transmit=%s" % (self.modulation, self.freq / 1000, self.dvbtmux.bandwidth, self.dvbtmux.transmitMode)
+		else:
+			return 'Unknown MUX type'
+
+class DvbTMux (DvbMux):
+	bandwidth		= models.CharField(u'Bandwidth', max_length=SYM_PARAM_SIZE, choices=BANDWIDTH_MODE, blank=False)
+	guardInterval	= models.CharField(u'Guard Interval', max_length=SYM_PARAM_SIZE, choices=GUARD_INTERVAL, blank=False)
+	hierarchy		= models.CharField(u'Hierarchy', max_length=SYM_PARAM_SIZE, choices=HIERARCHY_MODE, blank=False)
+	transmitMode	= models.CharField(u'Transmit mode', max_length=SYM_PARAM_SIZE, choices=TRANSMIT_MODE, blank=False)
+
+class DvbCMux (DvbMux):
+	symbolRate = models.PositiveIntegerField(u"Symbol rate")
+
 class Channel (models.Model):
 	name 	= models.CharField(u"Name", help_text="channel human visible name", unique=True, max_length=100)
 	xmltvID = models.PositiveIntegerField(u"XMLTV ID", unique=True, help_text="channel logical name as seen by STB and refered by EPG server")

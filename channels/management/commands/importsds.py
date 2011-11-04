@@ -19,7 +19,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from channels.models import Channel, DvbMux
+from channels.models import Channel, DvbTMux, DvbCMux
 from xml.etree import ElementTree as ET
 
 class Command(BaseCommand):
@@ -29,24 +29,31 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		sds = ET.parse(args[0]);
 		if sds.getroot().tag == 'Multiplexers':
-			self.parseHybrid(sds)
+			# symbolRate presence means DVB-C
+			muxParam = sds.getroot().find('Multiplexer').attrib.keys()
+			if 'symbolRate' in muxParam:
+				self.parseDVBC(sds)
+			elif 'guard_interval' in muxParam:
+				self.parseDVBT(sds)
+			else:
+				self.stderr.write('*** cannot determine DVB input format - not DVB-T or DVB-C\n')
 		elif sds.getroot().tag == 'ServiceDiscovery':
 			self.parseIPTV(sds)
 		else:
 			self.stderr.write("*** Unsupported format\n");
 	
-	def parseHybrid(self, sds):
+	def parseDVBC(self, sds):
 		xmltvCounter = 5000
 		for muxML in sds.getroot().findall("Multiplexer"):
 			# create a mux if doesn't exist
 			try:
-				mux = DvbMux.objects.get(fec_hp = muxML.attrib['fec_hp'],
+				mux = DvbCMux.objects.get(fec_hp = muxML.attrib['fec_hp'],
 										 fec_lp = muxML.attrib['fec_lp'],
 										 freq	= int(muxML.attrib['freq']),
 										 modulation = muxML.attrib['modulation'], 
 										 symbolRate = int(muxML.attrib['symbol_rate']))
 			except ObjectDoesNotExist:
-				mux = DvbMux(fec_hp = muxML.attrib['fec_hp'],
+				mux = DvbCMux(fec_hp = muxML.attrib['fec_hp'],
 							 fec_lp = muxML.attrib['fec_lp'],
 							 freq	= int(muxML.attrib['freq']),
 							 modulation = muxML.attrib['modulation'], 
@@ -80,7 +87,7 @@ class Command(BaseCommand):
 				
 				chan.tune = ET.tostring(chML, encoding='utf-8')
 				chan.mux  = mux
-				chan.mode = u'DVB'
+				chan.mode = u'DVBC'
 				chan.chanType = chML.attrib['type']
 				try :
 					chan.save()
@@ -132,3 +139,58 @@ class Command(BaseCommand):
 			
 			self.stdout.write(u"added [%d] \n" % chanDB.xmltvID)
 			
+	def parseDVBT(self, sds):
+		xmltvCounter = 5000
+		for muxML in sds.getroot().findall("Multiplexer"):
+			# create a mux if doesn't exist
+			try:
+				mux = DvbTMux.objects.get(fec_hp 		= muxML.attrib['fec_hp'],
+										 fec_lp 		= muxML.attrib['fec_lp'],
+										 freq			= int(muxML.attrib['freq']),
+										 bandwidth 		= muxML.attrib['bandwidth'],
+										 guardInterval 	= muxML.attrib['guard_interval'],
+										 hierarchy		= muxML.attrib['hierarchy'],
+										 transmitMode	= muxML.attrib['transmit_mode'])
+			except ObjectDoesNotExist:
+				mux = DvbTMux(fec_hp = muxML.attrib['fec_hp'],
+							 fec_lp = muxML.attrib['fec_lp'],
+							 freq	= int(muxML.attrib['freq']),
+							 bandwidth      = muxML.attrib['bandwidth'],
+							 guardInterval  = muxML.attrib['guard_interval'],
+							 hierarchy      = muxML.attrib['hierarchy'],
+							 transmitMode   = muxML.attrib['transmit_mode'])
+				mux.save()
+			
+			# populate mux with channels
+			for chML in muxML.findall("Service"):
+				xmltvML = chML.find("XMLTV"); 
+				if xmltvML.attrib['id'] == '--':
+					self.stderr.write("* Warn: auto-assign XMLTV ID %d to %s \n"% (xmltvCounter, chML.find('Name').attrib['value']))
+					xmltvID = xmltvCounter
+					xmltvCounter += 1
+				else:	
+					xmltvID = int(xmltvML.attrib['id']); 
+				chML.remove(xmltvML)
+				try:
+					chan = Channel.objects.get(xmltvID=xmltvID)
+				except ObjectDoesNotExist:
+					chan = Channel()
+					chan.xmltvID = xmltvID
+				
+				nameML 	= chML.find('Name'); chan.name = nameML.attrib['value']; chML.remove(nameML)
+				lcnML 	= chML.find('LCN'); chan.lcn = int(lcnML.attrib['value']); chML.remove(lcnML)
+				rateML 	= chML.find("Rating")
+				if rateML != None:
+					chan.mpaa = rateML.attrib['value']
+					chML.remove(rateML)
+				else:
+					chan.mpaa = u'G'
+				
+				chan.tune = ET.tostring(chML, encoding='utf-8')
+				chan.mux  = mux
+				chan.chanType = chML.attrib['type']
+				try :
+					chan.save()
+				except Exception as e:
+					self.stderr.write("Failed to save channel %s, reason %s\n" % (chan, e))
+

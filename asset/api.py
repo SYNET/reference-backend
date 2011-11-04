@@ -41,7 +41,8 @@ def ChunkCreated(request):
 				inAppId			= int(request.GET.get('channelID')),
 				aesKey			= request.GET.get('aesKey'), 
 				aesIV			= request.GET.get('aesIV'),
-				dataUrl			= request.GET.get('file')
+				dataUrl			= request.GET.get('file'),
+				dataBytes		= request.GET.get('bytes')
 		).save()
 	except Exception as e:
 		return HttpResponse(e, status=500)

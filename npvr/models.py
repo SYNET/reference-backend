@@ -5,8 +5,7 @@ from channels.models import Channel
 # 
 # Defines an NPVR record
 #
-class NpvrRecord(models.Model):
-	asset 		= models.ForeignKey(Asset)
+class NpvrRecord(Asset):
 	channel		= models.ForeignKey(Channel)
 	airTime		= models.DateTimeField("Air time")
 	durationSec	= models.PositiveIntegerField()

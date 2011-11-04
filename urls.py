@@ -20,12 +20,10 @@ admin.autodiscover()
 urlpatterns = patterns('',
 	(r'^synet/synet_config_ip.xml$', 'api.config.GetConfig'),
 	(r'^synet/synet_config_cab_ip_hybrid.xml$', 'api.config.GetConfig'),	
-	(r'^synet/channels/list$', 'api.chans.GetChannelList'),
+	(r'^synet/channels/dvbt$', 'api.chans.Get_DVB_T_ChannelList'),
+	(r'^synet/channels/dvbc$', 'api.chans.Get_DVB_C_ChannelList'),
+	(r'^synet/channels/iptv$', 'api.chans.Get_IPTV_ChannelList'),
 	(r'^synet/channels/categories', 'api.chans.GetChannelCategories'),
-	(r'^synet/video/catalog/list', 'api.vodaccess.GetCatalogList'),
-	(r'^synet/video/catalog/(?P<catalog_id>\d+)/category/list', 'api.vodaccess.GetCategoriesList'),
-	(r'^synet/video/catalog/(?P<catalog_id>\d+)/category/(?P<category_id>\d+)/list/(?P<from_index>\d+)/(?P<limit>\d+)', 'api.vodaccess.GetAssetList'),
-	(r'^synet/video/catalog/(?P<catalog_id>\d+)/asset/(?P<asset_id>\d+)/play', 'api.vodaccess.GetAssetPlaylist'),
 	
 #	(r'^channel/(?P<ch_id>\d+)/read/$', 'channels.view.demoChannel'),		
 
@@ -54,11 +52,13 @@ urlpatterns = patterns('',
 	(r'^synet/npvr/record/catalog/(?P<catalogID>\d+)$', 'api.npvr_public.RecordsByCatalogId'),
 	
 	# asset access public API 
-	(r'^synet/asset/(?P<assetId>\d+)/play$', 'api.asset_public.PlaylistByAsset'),
+	(r'^synet/asset/(?P<assetId>\d+)/play/hls.m3u8$', 'api.asset_public.HLSPlaylistByAsset'),
+	(r'^synet/asset/(?P<assetId>\d+)/play/1$', 'api.asset_public.HLSPlaylistSpecificByAsset'),
 	(r'^synet/asset/chunk/(?P<chunkId>\d+)/key$', 'api.asset_public.KeyByChunk'),
 	
 	# live feed access API
-	(r'^synet/channels/(?P<channelXmltvID>\d+)/live$', 'api.asset_public.LivePlaylist'),
+	(r'^synet/channels/(?P<channelXmltvID>\d+)/live.m3u8$', 'api.asset_public.LivePlaylist'),
+	(r'^synet/channels/(?P<channelXmltvID>\d+)/live/1.m3u8$', 'api.asset_public.LivePlaylistSpecific'),
 	# asset private API
 	(r'^synet/asset/chunk/add$', 'asset.api.ChunkCreated'),	
 	

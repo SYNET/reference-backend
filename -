@@ -1,0 +1,11 @@
+--2011-10-23 03:12:08--  http://localhost:8000/synet/channels/37/live
+Resolving localhost... 127.0.0.1
+Connecting to localhost|127.0.0.1|:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [application/x-mpegURL]
+Saving to: `live'
+
+     0K .......... ........                                     927K=0.02s
+
+2011-10-23 03:12:09 (927 KB/s) - `live' saved [18593]
+
