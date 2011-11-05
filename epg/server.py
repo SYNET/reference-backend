@@ -13,18 +13,27 @@
 
 import sys
 import binwriter
-import epg.server_helper
-import epg.server_plain_req
-import epg.server_ctg_req
+import epg.server_helper as server_helper
+import epg.server_plain_req as server_plain_req
+import epg.server_ctg_req as server_ctg_req
+from   django.http import HttpResponse
+from   django.db import connections
 
 MAX_LIMIT = 100
 
-def ServeRequest(self, outputFormat):
+def queryset2dict(q):
+	d = {}
+	for k in q.keys():
+		d[k] = q.getlist(k)
+	
+	return d
+
+def ServeRequest(request, outputFormat):
 	writers = {
-	#		'epg' : binwriter.row2bin,
+		'epg' : binwriter.row2bin,
 		'epg_py' : lambda row: '%s\n' % row,
 	}
-    content_types = {
+	content_types = {
 		'epg' : 'application/octet-stream',
 		'epg_py' : 'text/plain',
 	}
@@ -34,7 +43,7 @@ def ServeRequest(self, outputFormat):
 		query_db = server_ctg_req.query_db
 	
 	if outputFormat not in ('epg', 'epg_py'):
-		return HttpServerErrorResponse("wrong output format")
+		return HttpResponse("wrong output format", code=404)
     
 	for param in request.GET.keys():
 			if not param in server_helper.where_params and \
@@ -42,12 +51,13 @@ def ServeRequest(self, outputFormat):
 				not param in server_helper.other_params:
 					return False;
 	
-	response = HttpResponse(content_type=content_types[location])
+	response = HttpResponse(content_type=content_types[outputFormat])
 	
 	if 'limit' in request.GET and int(request.GET.get('limit')) > server_helper.limit_max:
 		request.GET['limit'] = [ str(MAX_LIMIT) ]
-    
-	rows = query_db(connections['epg'].cursor(), self.request.arguments)
-    writer = writers[location]
+	rows = query_db(connections['epg'].cursor(), queryset2dict(request.GET))
+	writer = writers[outputFormat]
 	for row in rows:
-		self.write(writer(row))
+		response.write(writer(row))
+	
+	return response;

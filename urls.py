@@ -36,7 +36,9 @@ urlpatterns = patterns('',
 	(r'^synet/bill/packages/addById/(?P<package_id>\d+)$', 'api.contract.SubscribeToPackage'),
 	(r'^synet/bill/packages/deleteById/(?P<package_id>\d+)$', 'api.contract.UnsubscribeFromPackage'),
 	(r'^synet/bill/packages/getAll$', 'api.contract.GetAllPackages'),
-	
+
+	# EPG
+	(r'^synet/epg/(?P<outputFormat>\w+)$','epg.server.ServeRequest'),	
 	# subscriber messaging protocol
 	# defined by 
 	(r'^synet/messages/messageList$', 'api.messages.messageList'),

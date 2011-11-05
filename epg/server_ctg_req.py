@@ -71,7 +71,8 @@ def query_db(db, http_req_args):
     paging_str = make_paging_str(http_req_args, db_req_args)
     db_req = 'SELECT %s FROM categories %s ORDER BY categories.start %s' % (select_target, ctg_where_str, paging_str);
     ts1 = server_helper.get_ts()
-    rows = db.execute(db_req, *db_req_args)
+    db.execute(db_req, db_req_args)
+    rows = server_helper.dictfetchall(db)
     ts2 = server_helper.get_ts()
     if server_helper.profile:
         print db_req % tuple(db_req_args)
@@ -91,7 +92,8 @@ def query_db(db, http_req_args):
     
     db_req = 'SELECT * FROM programs %s ORDER BY programs.start;' % (prg_where_str)
     ts1 = server_helper.get_ts()
-    rows = db.execute(db_req, *pr_ids)
+    db.execute(db_req, pr_ids)
+    rows = server_helper.dictfetchall(db)
     ts2 = server_helper.get_ts()
     if server_helper.profile:
         print db_req % tuple(pr_ids)

@@ -39,7 +39,7 @@ def make_where_str(http_req_args, db_req_args):
                 where_str += 'programs.%s in (' % (param)
                 where_str += '%s,' * len(http_req_args[param])
                 for i in range(0, len(http_req_args[param])):
-                    server_helper.append_value(param, i, db_req_args)
+                    server_helper.append_value(http_req_args, param, i, db_req_args)
                 where_str = where_str[:-1]
                 where_str += ')'
             else:
@@ -67,13 +67,15 @@ def query_db(db, http_req_args):
     db_req_args = []
     where_str = make_where_str(http_req_args, db_req_args)
     paging_str = make_paging_str(http_req_args, db_req_args)
-
+	
     db_req = 'SELECT %s FROM programs %s ORDER BY programs.start %s;' % (select_target, where_str, paging_str)
     if not server_helper.profile:
-        return db.execute(db_req, *db_req_args)
+        db.execute(db_req, db_req_args)
+        return server_helper.dictfetchall(db)
     else:
         ts1 = server_helper.get_ts()
-        rows = db.execute(db_req, *db_req_args)
+        db.execute(db_req, db_req_args)
+        rows = server_helper.dictfetchall(db)
         ts2 = server_helper.get_ts()
         print db_req % tuple(db_req_args)
         print 'Took %f ms' % ((ts2 - ts1) * 1000)
