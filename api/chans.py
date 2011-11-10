@@ -157,9 +157,7 @@ def GetChannelCategories(request):
 		doc.append(cat1ML)
 		
 		for gen in catL1.genres.all():
-			genML = ET.Element("Category")
-			genML.attrib['name'] = gen.name
-			cat1ML.append(genML)
+			ET.SubElement(cat1ML, 'Category', attrib={'name' : gen.name, 'id' : '%d'%(catL1.id*1000 + gen.id)})
 		
 		for chan in catL1.channels.all():
 			chanML = ET.Element("Channel")

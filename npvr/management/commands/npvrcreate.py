@@ -126,5 +126,5 @@ class Command(BaseCommand):
 			progress.save()
 			
 			# now dump some statistics
-			self.stdout.write('dump of SQL statements follows ****************\n%s\n' %
-				 sorted(connections['default'].queries, key= lambda t : t['time']))
+			# self.stdout.write('dump of SQL statements follows ****************\n%s\n' %
+			#	 sorted(connections['default'].queries, key= lambda t : t['time']))

@@ -235,10 +235,11 @@ def UnsubscribeFromPackage(request, package_id):
 #</packages>
 #
 def GetPackagesByChannel(request, xmltv_id):
-	try:
-		subscriber = getSubscriber(request)
-	except SubscriberNotAuthenticated as err:
-		return err.resp
+	#try:
+	#	subscriber = getSubscriber(request)
+	#except SubscriberNotAuthenticated as err:
+	#	return err.resp
+	subscriber = AccessCard.objects.filter(code=request.GET.get('cardNumber'), enabled=True)[0].subscriber
 	
 	doc = ET.Element("packages")
 		

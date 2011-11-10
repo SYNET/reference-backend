@@ -34,7 +34,7 @@ def noEntries():
 	return HttpResponse("<error><msg>No Entries</msg></error>")
 
 def recordName(record):
-	return '%u/%u %u:%u %s' % (record.airTime.month, record.airTime.day, record.airTime.hour, record.airTime.minute, record.title)	
+	return record.title
 #
 # Returns further URIs to available catalog
 #
@@ -91,17 +91,17 @@ def RecordInfo(request, recordID):
 		ET.SubElement(metaX, 'poster', attrib={'smallImageUrl' : record.posterUrl})
 	
 	# now we provide information about channel and air time
-	dataX = ET.SubElement(metaX, 'data', attrib={'stars' : '3.5'})
+	dataX = ET.SubElement(metaX, 'data')
 	dataX.tail = 'Hi there'
 	ET.SubElement(ET.SubElement(dataX, 'group'),
 	 'item', attrib={
 		'label'		: record.title
-	}).tail = "Hi Kolya"
+	})
 	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label' : "Channel "}),
 	 'item', attrib={
 		'label' 	: record.channel.name,
 		'filterUrl'	: request.build_absolute_uri(BASE_URL + '/channel/%d' % record.channel.xmltvID) 
-	}).tail = ' : '
+	})
 	ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label': 'Air Time '}),
 	 'item', attrib={
 		'label' : "%d/%d %d:%d" % (record.airTime.month, record.airTime.day, record.airTime.hour, record.airTime.minute)
@@ -110,9 +110,9 @@ def RecordInfo(request, recordID):
 	if record.catalogID != None and record.catalogID != 0:
 		count = NpvrRecord.objects.filter(catalogID=record.catalogID).count()
 		if count > 0:
-			ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label' : 'Other series'}),
+			ET.SubElement(ET.SubElement(dataX, 'group', attrib={'label' : 'Other series of %s'%record.title}),
 			 'item', attrib={
-				'label' 	: u"Other series (%d)"%count,
+				'label' 	: u" %d more"%count,
 				'filterUrl' : request.build_absolute_uri('/synet/npvr/record/catalog/%d'%record.catalogID)
 			})
 	

@@ -171,7 +171,10 @@ class TariffGroup (models.Model):
 	
 	def test(self):
 		return channel.name
-	
+
+	class Meta:
+		unique_together = ('channel', 'tariff')
+
 class TariffAssignments (models.Model):
 	subscriber = models.ForeignKey(Subscriber)
 	tariff	   = models.ForeignKey(Tariff)
@@ -186,7 +189,7 @@ class ChannelCategory (models.Model):
 	name = models.CharField(u"Channel category", max_length=40)
 	channels = models.ManyToManyField(Channel, verbose_name=u'Channel(s)', through='ChannelCategory_Group')
 	genres   = models.ManyToManyField(Genre, verbose_name=u'Channel(s)', through='ChannelCategory_Genre_Group')
-	code	 = models.PositiveIntegerField(u'code for external reference')
+	code	 = models.PositiveIntegerField(u'code for external reference', unique=True)
 
 	def __unicode__(self):
 		return self.name

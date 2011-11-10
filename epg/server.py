@@ -31,19 +31,19 @@ def queryset2dict(q):
 def ServeRequest(request, outputFormat):
 	writers = {
 		'epg' : binwriter.row2bin,
-		'epg_py' : lambda row: '%s\n' % row,
+		'py' : lambda row: '%s\n' % row,
 	}
 	content_types = {
 		'epg' : 'application/octet-stream',
-		'epg_py' : 'text/plain',
+		'py' : 'text/plain',
 	}
 	
 	query_db = server_plain_req.query_db
 	if 'ctg_id' in request.GET:
 		query_db = server_ctg_req.query_db
 	
-	if outputFormat not in ('epg', 'epg_py'):
-		return HttpResponse("wrong output format", code=404)
+	if outputFormat not in ('epg', 'py'):
+		return HttpResponse("wrong output format", status=404)
     
 	for param in request.GET.keys():
 			if not param in server_helper.where_params and \

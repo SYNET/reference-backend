@@ -18,6 +18,7 @@ import time, calendar
 import codecs
 from xml.etree.cElementTree import ElementTree, Element, SubElement, tostring
 from django.db import connections
+from django.db.models import Max, Count
 from django.core.management.base import BaseCommand, CommandError
 from epg.models import EpgCategory, EpgProgram
 
@@ -89,8 +90,8 @@ def insert_programs(printout, conn, programs, categories):
                 if aux_id in categories[c]['channels']:
                     cursor.execute('''REPLACE INTO categories(ctg_id, pr_id, start, end)
                         VALUES(%s, %s, %s, %s);''', (categories[c]['id'], prog_id, start, end))
-
-        cursor.execute('''INSERT INTO programs (pr_id, start, end,
+	try : 
+         cursor.execute('''INSERT INTO programs (pr_id, start, end,
             aux_id, cat_id, rating,
             title, title_l,
             descr, descr_l, icon)
@@ -100,11 +101,14 @@ def insert_programs(printout, conn, programs, categories):
             %s, %s, %s)''',
             (prog_id, start, end, aux_id, cat_id, rating,
             title, title_lang, descr, descr_lang, icon))
-        prog_id += 1
-    #cursor.execute('''CHECK TABLE categories''')
-    #cursor.execute('''REPAIR TABLE categories''')
-    #cursor.execute('''CHECK TABLE programs''')
-    #cursor.execute('''REPAIR TABLE programs''')
+         prog_id += 1
+        except Exception, e:
+         printout.write('*** cant save program aux=%s chan=%s, start=\"%s\", title=\"%s\"\n' % (aux_id, p['channel'], p['start'], p['title'][0][0]))
+         printout.write('      error was %s \n' % e) 
+    cursor.execute('''CHECK TABLE categories''')
+    cursor.execute('''REPAIR TABLE categories''')
+    cursor.execute('''CHECK TABLE programs''')
+    cursor.execute('''REPAIR TABLE programs''')
 
     cursor.close()
     conn.commit()
@@ -147,7 +151,7 @@ def parse_category(printout, elem, parent, categories):
         categories[elem.get('name')] = retval
 
     for category in elem.findall('Category'):
-        parse_category(category, elem, categories)
+        parse_category(printout, category, elem, categories)
     return categories
 
 def parse_categories(printout, fn):
@@ -157,6 +161,14 @@ def parse_categories(printout, fn):
     for elem in tree.findall('Category'):
         parse_category(printout, elem, None, categories)
     return categories
+
+def assign_catalog_ids(printout):
+	catID = EpgProgram.objects.aggregate(Max('cat_id'))['cat_id__max']
+	for dup in EpgProgram.objects.values('title').annotate(dup_count=Count('title')).filter(dup_count__gt=1):
+		catID += 1
+		updateCount = EpgProgram.objects.filter(title=dup['title']).update(cat_id=catID)
+		printout.write('Assigned catalog id=%d to %d programs named %s\n' % (catID, updateCount, dup['title']))
+
 
 class Command(BaseCommand):
 	args = '<epg program in XMLTV format> <categories list>'
@@ -175,7 +187,6 @@ class Command(BaseCommand):
 		except Exception as e:
 			raise CommandError('*** Error while parsing %s: %s' % (args[1], e))
 		self.stdout.write('done!\n')
-		import pdb; pdb.set_trace();
 
 		self.stdout.write('Parsing EPG from %s...' % args[0]); self.stdout.flush()
 		try:
@@ -195,3 +206,6 @@ class Command(BaseCommand):
 		self.stdout.write('Inserting data to DB'); self.stdout.flush()
 		insert_programs(self.stderr, conn, programmes, categories)
 		self.stdout.write('done!\n')
+		
+		self.stdout.write("Joining matching programs...\n")
+		assign_catalog_ids(self.stderr)
