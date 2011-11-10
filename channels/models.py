@@ -42,12 +42,6 @@ MODULATION_TYPE = (
 	(u'QAM56',	u'QAM-56')
 )
 
-SERVICE_MODE = (
-	(u'DVB', 	u"DVB Cable"),
-	(u'IPTV', 	u"IPTV Multicast"),
-	(u'OTT', 	u'Over-the-internet')
-)
-
 BANDWIDTH_MODE = (
 	(u"BANDWIDTH_8", u'8'),
 	(u"BANDWIDTH_7", u'7'),
@@ -119,6 +113,10 @@ class DvbTMux (DvbMux):
 class DvbCMux (DvbMux):
 	symbolRate = models.PositiveIntegerField(u"Symbol rate")
 
+# channel information is abstracted from dvb/iptv delivery method
+# if channel is bound to DVB-T mux, it would be generated as DVB-T
+# if channel has multicast (which is common for IP-based headends) it would be used for NPVR 
+# and also you could use this channel data with IPTV STBs
 class Channel (models.Model):
 	name 	= models.CharField(u"Name", help_text="channel human visible name", unique=True, max_length=100)
 	xmltvID = models.PositiveIntegerField(u"XMLTV ID", unique=True, help_text="channel logical name as seen by STB and refered by EPG server")
@@ -126,7 +124,6 @@ class Channel (models.Model):
 	tune  	= models.TextField(u"channel tune parameters", help_text="serialized form of channel tune data")
 	enabled	= models.BooleanField(u'Show to users', default=True)	
 	mpaa 	= models.CharField(u'MPAA raiting', max_length=5, choices=MPAA_RATING)
-	mode	= models.CharField(u'Channel mode', max_length=5, choices=SERVICE_MODE, default=u'DVB')
 	chanType= models.CharField(u'Channel type', max_length=5, choices=CHAN_TYPE, default=u'TV')
 	mux		= models.ForeignKey(DvbMux, blank=True, null=True)
 	
@@ -169,9 +166,6 @@ class TariffGroup (models.Model):
 	channel = models.ForeignKey(Channel)
 	tariff  = models.ForeignKey(Tariff)
 	
-	def test(self):
-		return channel.name
-
 	class Meta:
 		unique_together = ('channel', 'tariff')
 

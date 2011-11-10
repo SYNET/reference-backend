@@ -68,7 +68,7 @@ def Get_DVB_C_ChannelList(request):
 		muxML.attrib['symbol_rate']	= "%d"%mux.symbolRate
 		doc.append(muxML)
 		
-		for ch in mux.channel_set.filter(enabled=True, mode='DVB'):
+		for ch in mux.channel_set.filter(enabled=True):
 			muxML.append(getChannelXml(ch))
 		
 	return HttpResponse(ET.tostring(doc, encoding='utf-8'))
@@ -82,7 +82,7 @@ def Get_DVB_C_ChannelList(request):
 # this request does not perform any authentication
 #
 def Get_IPTV_ChannelList(request):
-	chanList = Channel.objects.filter(enabled=True, mode='IPTV')
+	chanList = Channel.objects.filter(enabled=True).exclude(mcastAddr='').exclude(mcastAddr=None).exclude(mcastPort=None).exclude(mcastPort=0)
 	chanList.order_by('lcn')
 	
 	root = ET.Element("ServiceDiscovery")
@@ -92,28 +92,15 @@ def Get_IPTV_ChannelList(request):
 	e_bd.append(serviceList)
 	
 	for chan in chanList: 
-		# try to parse the string, which must be in 
-		# udp://address:port format
-		
-		serviceParam = re.match(u"udp://(?P<host>[a-zA-Z0-9_\.]+):(?P<port>\w+)", chan.tune)
-		if not serviceParam:
-			# malformed URL definition
-			return HttpResponseServerError("IPTV_ChannelList: can't parse %s", chan.tune)
-		
-		serviceParam = serviceParam.groupdict()
-		
-		# generate XML 
-		service = ET.Element("SingleService")
-		service.attrib['id'] = "%d" % chan.xmltvID
-		service.attrib['type'] = 'tv'
-		serviceList.append(service)
+		service = ET.SubElement(serviceList, "SingleService", 
+			attrib={ 'id' : "%d" % chan.xmltvID, 'type' : 'tv'})
 		
 		location = ET.Element("ServiceLocation")
 		service.append(location)
 		
 		mcast = ET.Element("IPMulticastAddress")
-		mcast.attrib['Address'] = serviceParam['host']
-		mcast.attrib['Port']	= serviceParam['port']
+		mcast.attrib['Address'] = chan.mcastAddr
+		mcast.attrib['Port']	= "%u" % chan.mcastPort
 		mcast.attrib['Streaming'] = 'udp'
 		location.append(mcast)
 		
@@ -125,8 +112,8 @@ def Get_IPTV_ChannelList(request):
 		name.attrib['ServiceName'] = chan.name
 		service.append(name)
 		
-		if (ch.demoURL != None and ch.demoURL != ''):
-			ET.SubElement(service, 'Teaser', attrib={'url': ch.demoURL})
+		if (chan.demoURL != None and chan.demoURL != ''):
+			ET.SubElement(service, 'Teaser', attrib={'url': chan.demoURL})
 		
 	
 	# or we're done now let's dump out
